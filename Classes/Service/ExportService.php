@@ -1,4 +1,5 @@
 <?php
+namespace DERHANSEN\SfEventMgt\Service;
 
 /*
  * This file is part of the Extension "sf_event_mgt" for TYPO3 CMS.
@@ -6,8 +7,6 @@
  * For the full copyright and license information, please read the
  * LICENSE.txt file that was distributed with this source code.
  */
-
-namespace DERHANSEN\SfEventMgt\Service;
 
 use DERHANSEN\SfEventMgt\Domain\Model\Event;
 use DERHANSEN\SfEventMgt\Domain\Model\Registration;
@@ -25,12 +24,12 @@ class ExportService
     /**
      * @var \DERHANSEN\SfEventMgt\Domain\Repository\RegistrationRepository
      */
-    protected $registrationRepository;
+    protected $registrationRepository = null;
 
     /**
      * @var \DERHANSEN\SfEventMgt\Domain\Repository\EventRepository
      */
-    protected $eventRepository;
+    protected $eventRepository = null;
 
     /**
      * @param RegistrationRepository $registrationRepository
@@ -40,6 +39,8 @@ class ExportService
     ) {
         $this->registrationRepository = $registrationRepository;
     }
+
+    
 
     /**
      * @param \DERHANSEN\SfEventMgt\Domain\Repository\EventRepository $eventRepository
@@ -55,9 +56,23 @@ class ExportService
      * @param int $eventUid EventUid
      * @param array $settings Settings
      * @throws Exception RuntimeException
+     * @return void
      */
     public function downloadRegistrationsCsv($eventUid, $settings = [])
-    {
+    {   
+        #check current User-Rights
+
+         /** @var Event $event */
+         $event = $this->eventRepository->findByUid($eventUid);
+         if ($event) {
+             if(!is_int($GLOBALS['BE_USER']->isInWebMount($event->getPid()))){ die("No Accsess");}
+         }else {
+            die("No Accsess");
+         }
+
+
+        
+
         $content = $this->exportRegistrationsCsv($eventUid, $settings);
         header('Content-Disposition: attachment; filename="event_' . $eventUid . '_reg_' . date('dmY_His') . '.csv"');
         header('Content-Type: text/csv');
